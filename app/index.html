@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wheel Specifications Form</title>
+</head>
+<body>
+  <h1>Submit Wheel Specification</h1>
+  <form id="wheelSpecForm">
+    <label>
+      Form Number: <input type="text" name="formNumber" required />
+    </label><br/><br/>
+    <label>
+      Submitted By: <input type="text" name="submittedBy" required />
+    </label><br/><br/>
+    <label>
+      Submitted Date: <input type="date" name="submittedDate" required />
+    </label><br/><br/>
+
+    <h3>Fields:</h3>
+    <label>
+      treadDiameterNew: <input type="text" name="treadDiameterNew" required />
+    </label><br/><br/>
+    <label>
+      lastShopIssueSize: <input type="text" name="lastShopIssueSize" required />
+    </label><br/><br/>
+    <label>
+      condemningDia: <input type="text" name="condemningDia" required />
+    </label><br/><br/>
+    <label>
+      wheelGauge: <input type="text" name="wheelGauge" required />
+    </label><br/><br/>
+    <label>
+      variationSameAxle: <input type="text" name="variationSameAxle" required />
+    </label><br/><br/>
+    <label>
+      variationSameBogie: <input type="text" name="variationSameBogie" required />
+    </label><br/><br/>
+    <label>
+      variationSameCoach: <input type="text" name="variationSameCoach" required />
+    </label><br/><br/>
+    <label>
+      wheelProfile: <input type="text" name="wheelProfile" required />
+    </label><br/><br/>
+    <label>
+      intermediateWWP: <input type="text" name="intermediateWWP" required />
+    </label><br/><br/>
+    <label>
+      bearingSeatDiameter: <input type="text" name="bearingSeatDiameter" required />
+    </label><br/><br/>
+    <label>
+      rollerBearingOuterDia: <input type="text" name="rollerBearingOuterDia" required />
+    </label><br/><br/>
+    <label>
+      rollerBearingBoreDia: <input type="text" name="rollerBearingBoreDia" required />
+    </label><br/><br/>
+    <label>
+      rollerBearingWidth: <input type="text" name="rollerBearingWidth" required />
+    </label><br/><br/>
+    <label>
+      axleBoxHousingBoreDia: <input type="text" name="axleBoxHousingBoreDia" required />
+    </label><br/><br/>
+    <label>
+      wheelDiscWidth: <input type="text" name="wheelDiscWidth" required />
+    </label><br/><br/>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="response" style="margin-top:20px;"></div>
+
+  <script>
+    const form = document.getElementById('wheelSpecForm');
+    const responseDiv = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      // Build fields object from inputs starting after formNumber, submittedBy, submittedDate
+      const fields = {};
+      const skipKeys = ['formNumber', 'submittedBy', 'submittedDate'];
+      for (let [key, value] of formData.entries()) {
+        if (!skipKeys.includes(key)) {
+          fields[key] = value;
+        }
+      }
+
+      const payload = {
+        formNumber: formData.get('formNumber'),
+        submittedBy: formData.get('submittedBy'),
+        submittedDate: formData.get('submittedDate'),
+        fields: fields
+      };
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/forms/wheel-specifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          responseDiv.style.color = 'green';
+          responseDiv.textContent = data.message;
+          form.reset();
+        } else {
+          responseDiv.style.color = 'red';
+          if (data.detail) {
+            if (typeof data.detail === 'string') {
+              responseDiv.textContent = data.detail;
+            } else if (Array.isArray(data.detail)) {
+              responseDiv.textContent = data.detail.map(d => d.msg || JSON.stringify(d)).join(', ');
+            } else {
+              responseDiv.textContent = JSON.stringify(data.detail);
+            }
+          } else {
+            responseDiv.textContent = 'Error submitting form';
+          }
+        }
+      } catch (error) {
+        responseDiv.style.color = 'red';
+        responseDiv.textContent = 'Network error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

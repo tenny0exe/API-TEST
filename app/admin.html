@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin - Wheel Specifications</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1200px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f4f4f4;
+      text-align: left;
+    }
+    tr:nth-child(even){
+      background-color: #fafafa;
+    }
+    .fields-json {
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-width: 400px;
+      overflow-wrap: break-word;
+    }
+    #refreshBtn {
+      margin-bottom: 15px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Admin - Wheel Specifications</h1>
+  <button id="refreshBtn">Refresh List</button>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Form Number</th>
+        <th>Submitted By</th>
+        <th>Submitted Date</th>
+        <th>Fields (Details)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="4">Loading data...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const tableBody = document.querySelector("#dataTable tbody");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    async function fetchData() {
+      tableBody.innerHTML = '<tr><td colspan="4">Loading data...</td></tr>';
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/forms/wheel-specifications");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const json = await res.json();
+
+        if (!json.success || !json.data.length) {
+          tableBody.innerHTML = '<tr><td colspan="4">No records found.</td></tr>';
+          return;
+        }
+
+        tableBody.innerHTML = "";
+        json.data.forEach(item => {
+          const tr = document.createElement("tr");
+
+          const formNumTd = document.createElement("td");
+          formNumTd.textContent = item.formNumber;
+          tr.appendChild(formNumTd);
+
+          const submittedByTd = document.createElement("td");
+          submittedByTd.textContent = item.submittedBy;
+          tr.appendChild(submittedByTd);
+
+          const submittedDateTd = document.createElement("td");
+          submittedDateTd.textContent = item.submittedDate;
+          tr.appendChild(submittedDateTd);
+
+          const fieldsTd = document.createElement("td");
+          fieldsTd.classList.add("fields-json");
+          fieldsTd.textContent = JSON.stringify(item.fields, null, 2);
+          tr.appendChild(fieldsTd);
+
+          tableBody.appendChild(tr);
+        });
+
+      } catch (error) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="color:red;">Error loading data: ${error.message}</td></tr>`;
+      }
+    }
+
+    refreshBtn.addEventListener("click", fetchData);
+
+    // Load data on page load
+    fetchData();
+  </script>
+
+</body>
+</html>
